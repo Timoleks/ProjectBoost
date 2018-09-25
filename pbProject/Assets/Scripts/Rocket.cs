@@ -5,20 +5,23 @@ using UnityEngine.SceneManagement;
 
 public class Rocket : MonoBehaviour {
 
-	[SerializeField]
-		private float rcsThrust = 250f;
-	[SerializeField]
-		private float mainThrust = 50f;
 
-	[SerializeField]
-		private AudioClip mainEngine;
+	public LevelFader fader;
 
-	[SerializeField]
-		private AudioClip success;
+	[SerializeField] private float rcsThrust = 250f;
+	[SerializeField] private float mainThrust = 50f;
+	public int deathCount = 0;
 
-	[SerializeField]
-		private AudioClip death;
+	//audio
+	[SerializeField] private AudioClip mainEngine;
+	[SerializeField] private AudioClip success;
+	[SerializeField] private AudioClip death;
+		
 
+	//particles
+	[SerializeField] private ParticleSystem rocketParticle;
+	[SerializeField] private ParticleSystem successParticle;
+	[SerializeField] private ParticleSystem deathParticle;
 
 	Rigidbody rb;
 	AudioSource source;
@@ -31,15 +34,22 @@ public class Rocket : MonoBehaviour {
 	{
 		rb = GetComponent<Rigidbody>();
 		source = GetComponent<AudioSource>();
+		deathCount = PlayerPrefs.GetInt("deathCount",0);
 	}
 
 	void Update()
 	{
+		if(Input.GetKey(KeyCode.P))
+			resetDeathCount();
+
 		if(state == State.Alive)
 		{
 			RespondToThrustInput();
 			RespondToRotateInput();
 		}
+
+		//Debug.Log(deathCount);
+		
 	}
 
 	private void RespondToRotateInput()
@@ -71,6 +81,7 @@ public class Rocket : MonoBehaviour {
 		}
 		else{
 			source.Stop();
+			rocketParticle.Stop();
 		}
 	}
 
@@ -81,6 +92,7 @@ public class Rocket : MonoBehaviour {
 		{
 			source.PlayOneShot(mainEngine);
 		}
+		rocketParticle.Play();
 	}
 
 	void OnCollisionEnter(Collision col)
@@ -114,7 +126,8 @@ public class Rocket : MonoBehaviour {
 		state = State.Trans;
 		source.Stop();
 		source.PlayOneShot(success);
-		Invoke("loadNextLevel",1f);
+		successParticle.Play();
+		Invoke("loadNextLevel",2f);
 	}
 
 	private void StartDyingSequence()
@@ -122,17 +135,36 @@ public class Rocket : MonoBehaviour {
 		state = State.Dying;
 		source.Stop();
 		source.PlayOneShot(death);
+		deathParticle.Play();
+		deathCount++;
+	    PlayerPrefs.SetInt("deathCount",deathCount);
+		//Debug.Log(deathCount);
 		Invoke("reloadLevel",1f);
 	}
 
 	private void loadNextLevel()
 	{
-		SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+		int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+		int nextSceneIndex = currentSceneIndex + 1;
+		if(nextSceneIndex == SceneManager.sceneCountInBuildSettings)
+		{
+			nextSceneIndex = 0;
+		}
+		fader.FadeToLevel(nextSceneIndex);
+		resetDeathCount();
 	}
 
 	private void reloadLevel()
 	{
 		SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+	}
+
+	
+	
+	public void resetDeathCount()
+	{
+		PlayerPrefs.DeleteAll();
+		
 	}
 
 }
