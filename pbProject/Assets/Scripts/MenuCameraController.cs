@@ -17,9 +17,10 @@ public class MenuCameraController : MonoBehaviour {
 	void Start () {
 		
 		currentView = defaultView;
-		gameCanvas[0].SetActive(false);
-		gameCanvas[1].SetActive(false);
-		gameCanvas[2].SetActive(false);
+		for(int i =0; i < gameCanvas.Length; i++)
+        {
+            gameCanvas[i].SetActive(false);
+        }
 	}
 
 	void Update()
@@ -64,9 +65,10 @@ public class MenuCameraController : MonoBehaviour {
 	public void backToDefaultView()
 	{
 		currentView = defaultView;
-		gameCanvas[0].SetActive(false);
-		gameCanvas[1].SetActive(false);
-		gameCanvas[2].SetActive(false);
+		for(int i = 0; i < gameCanvas.Length;i++)
+        {
+            gameCanvas[i].SetActive(false);
+        }
 	}
 
 	public void levelViewMenu()
@@ -74,4 +76,15 @@ public class MenuCameraController : MonoBehaviour {
 		currentView = views[2];
 		gameCanvas[2].SetActive(true);
 	}
+
+    public void optionsMenuGraphicView()
+    {
+        currentView = views[3];
+        gameCanvas[3].SetActive(true);
+    }
+
+    public void quitGame()
+    {
+        Application.Quit();
+    }
 }
